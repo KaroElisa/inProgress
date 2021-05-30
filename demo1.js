@@ -161,12 +161,12 @@ Tunnel.prototype.init = function () {
   // Set size of the renderer and its background color
   this.renderer.setSize(ww, wh);
   this.renderer.setClearColor(0x222222);
-	
-  this.audioStart();
 
   // Create a camera and move it along Z axis
   this.camera = new THREE.PerspectiveCamera(15, ww / wh, 0.01, 1000);
   this.camera.position.z = 0.01;
+
+  this.audioStart();
 
   // Create an empty scene and define a fog for it
   //https://threejsfundamentals.org/threejs/lessons/threejs-fog.html
