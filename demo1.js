@@ -166,8 +166,6 @@ Tunnel.prototype.init = function () {
   this.camera = new THREE.PerspectiveCamera(15, ww / wh, 0.01, 1000);
   this.camera.position.z = 0.01;
 
-  this.audioStart();
-
   // Create an empty scene and define a fog for it
   //https://threejsfundamentals.org/threejs/lessons/threejs-fog.html
   this.scene = new THREE.Scene();
@@ -464,6 +462,7 @@ Tunnel.prototype.handleEvents = function () {
     //in this case the "this" keyword is referring to the resized screen, therefore resizing mouse positions
     this.onMouseMove.bind(this),
     false
+    this.audioStart();
   );
 
   document.body.addEventListener(
