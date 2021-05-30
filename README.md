@@ -1,7 +1,6 @@
 # Infinite Tubes
 
-Made with [Article on Codrops](https://tympanus.net/codrops/?p=30954)
-[Demo](https://tympanus.net/Development/InfiniteTubes/)
+Made with [This Demo by CoDrops](https://tympanus.net/Development/InfiniteTubes/) and [this fiddle](https://jsfiddle.net/2pha/bhbn1sb8/)
 
 ## Credits
 
