@@ -161,6 +161,8 @@ Tunnel.prototype.init = function () {
   // Set size of the renderer and its background color
   this.renderer.setSize(ww, wh);
   this.renderer.setClearColor(0x222222);
+	
+  this.audioStart();
 
   // Create a camera and move it along Z axis
   this.camera = new THREE.PerspectiveCamera(15, ww / wh, 0.01, 1000);
@@ -462,7 +464,6 @@ Tunnel.prototype.handleEvents = function () {
     //in this case the "this" keyword is referring to the resized screen, therefore resizing mouse positions
     this.onMouseMove.bind(this),
     false
-    this.audioStart();
   );
 
   document.body.addEventListener(
