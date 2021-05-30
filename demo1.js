@@ -25,6 +25,8 @@ var offsetTest = 0.0;
 
 var myAnimator, myAlphaAnimator;
 
+var probeX, probeY, probeZ;
+
 // TEXTURE
 
 var clock = new THREE.Clock();
@@ -117,18 +119,18 @@ function Tunnel(cell) {
   // Create the shape of the tunnel
   this.createMesh();
 
-  this.curveGeo();
+  //this.curveGeo();
 
   //CylinderGeometry(radiusTop : Float, radiusBottom : Float, height : Float, radialSegments : Integer, heightSegments : Integer, openEnded : Boolean, thetaStart : Float, thetaLength : Float)
-// const geometry = new THREE.CylinderGeometry( 0.0005, 0.0005, 1.2, 32 );
-// const material = new THREE.MeshBasicMaterial( {color: 0x000000} );
-// cylinder = new THREE.Mesh( geometry, material );
-// cylinder.rotation.x = (90 * Math.PI) / 180;
+const geometry = new THREE.CylinderGeometry( 0.0005, 0.0005, 1.2, 32 );
+const material = new THREE.MeshBasicMaterial( {color: 0x000000} );
+cylinder = new THREE.Mesh( geometry, material );
+cylinder.rotation.x = (90 * Math.PI) / 180;
 
-// this.scene.add( cylinder );
+ this.scene.add( cylinder );
 
   // Create the shape of the guideRail
-  this.createTrackMesh();
+  //this.createTrackMesh();
 
   // Mouse events & window resize
   this.handleEvents();
@@ -391,25 +393,28 @@ Tunnel.prototype.createTrackMesh = function () {
   //POSSIBLY ADD PERLIN NOISE ALGORITHM TO "PULSE" THE TUNNEL LIKE A HEARTBEAT
   
     // Empty array to store the points along the path
-    // var trackPoints = [];
+    var trackPoints = [];
   
-    // // Define points along Z axis to create a curve
-    // for (var i = 0; i < 5; i += 1) {
-    //   trackPoints.push(new THREE.Vector3(0, 0, 1.0 * (i / 4)));
-    // }
+    // Define points along Z axis to create a curve
+    for (var i = 0; i < 5; i += 1) {
+      trackPoints.push(new THREE.Vector3(0, 0, 0.2 * (i / 4)));
+    }
   
-    // // Set custom Y position for the last point
-    // trackPoints[4].y = -0.01;
+    // Set custom Y position for the last point
+    trackPoints[4].x = this.particleLight.position.x;
+    trackPoints[4].y =  this.particleLight.position.y;
+    trackPoints[4].z = this.particleLight.position.z-0.2;
   
     // Create a curve based on the points and define curve type
-    this.trackCurve = new THREE.CatmullRomCurve3([
-      //new THREE.Vector3( this.particleLight.x, this.particleLight.y, this.particleLight.z ),
-      new THREE.Vector3( -0.10, 0, 0.10 ),
-      new THREE.Vector3( -0.5, 0.5, 0.5 ),
-      new THREE.Vector3( 0, 0, 0 ),
-      new THREE.Vector3( 0.5, -0.5, 0.5 ),
-      new THREE.Vector3( 0.10, 0, 0.10 )
-    ]);
+    this.trackCurve = new THREE.CatmullRomCurve3(trackPoints);
+    // [
+    //   //new THREE.Vector3( this.particleLight.x, this.particleLight.y, this.particleLight.z ),
+    //   new THREE.Vector3( -0.10, 0, 0.10 ),
+    //   new THREE.Vector3( -0.5, 0.5, 0.5 ),
+    //   new THREE.Vector3( 0, 0, 0 ),
+    //   new THREE.Vector3( 0.5, -0.5, 0.5 ),
+    //   new THREE.Vector3( 0.10, 0, 0.10 )
+    // ]);
   
     // Empty geometry
     var trackGeometry = new THREE.Geometry();
@@ -422,7 +427,7 @@ Tunnel.prototype.createTrackMesh = function () {
     // Create a tube geometry based on the curve
   
     //TubeGeometry(path : Curve, tubularSegments : Integer, radius : Float, radialSegments : Integer, closed : Boolean)
-    this.trackTubeGeometry = new THREE.TubeGeometry(this.trackCurve, 70, 0.01, 60, false);
+    this.trackTubeGeometry = new THREE.TubeGeometry(this.trackCurve, 70, 0.0001, 60, false);
     // Create a mesh based on the tube geometry and its material
   
   
@@ -603,7 +608,7 @@ Tunnel.prototype.updateCurve = function () {
       10;
     vertice.y +=
       (vertice_o.y + this.splineMesh.geometry.vertices[index].y - vertice.y) /
-      5;
+      100;
   }
 
   // Warn ThreeJs that the points have changed
@@ -888,51 +893,48 @@ Tunnel.prototype.probeMotion = function (){
 
 Tunnel.prototype.curveGeo = function () {
 
-  // const randomPoints = [];
-
-  // for ( let i = 0; i < 10; i ++ ) {
-
-  //   randomPoints.push( new THREE.Vector3( ( i - 4.5 ) * 50, THREE.MathUtils.randFloat( - 50, 50 ), THREE.MathUtils.randFloat( - 50, 50 ) ) );
-
-  // }
-
-  const randomSpline = new THREE.CatmullRomCurve3( [
-    new THREE.Vector3( 1, 1, 1),
-    new THREE.Vector3( 0.5, 0.5, 0.5 ),
-    new THREE.Vector3( 0, -2, -2 ),
-    // new THREE.Vector3( 0, 0.020, - 0.060 ),
-    // new THREE.Vector3( 0, - 0.0100,  -0.060 )
+  const closedSpline = new THREE.CatmullRomCurve3( [
+    new THREE.Vector3( this.particleLight.position.x, this.particleLight.position.y, this.particleLight.position.z ),
+    // new THREE.Vector3( - 0.0060, 0.0020, 0.0060 ),
+    // new THREE.Vector3( - 0.0060, 0.00120, 0.0060 ),
+    new THREE.Vector3( 0.0060, 0.0020, - 0.0060 ),
+    new THREE.Vector3( 0, - 0.02, - 0.02)
   ] );
-  //
 
-  const extrudeSettings2 = {
-    steps: 90,
+  closedSpline.curveType = 'catmullrom';
+  closedSpline.closed = false;
+
+  const extrudeSettings1 = {
+    steps: 400,
     bevelEnabled: false,
-    extrudePath: randomSpline
+    extrudePath: closedSpline
   };
 
 
-  const pts2 = [], numPts = 5;
+  const pts1 = [], count = 7;
 
-  for ( let i = 0; i < numPts * 2; i ++ ) {
+  for ( let i = 0; i < count; i ++ ) {
 
-    const l = i % 2 == 1 ? 10 : 20;
+    const l = 0.0003;
 
-    const a = i / numPts * Math.PI;
+    const a = 2 * i / count * Math.PI;
 
-    pts2.push( new THREE.Vector2( Math.cos( a ) * l, Math.sin( a ) * l ) );
+    pts1.push( new THREE.Vector2( Math.cos( a ) * l, Math.sin( a ) * l ) );
 
   }
 
-  const shape2 = new THREE.Shape( pts2 );
+  const shape1 = new THREE.Shape( pts1 );
 
-  const geometry2 = new THREE.ExtrudeGeometry( shape2, extrudeSettings2 );
+  const geometry1 = new THREE.ExtrudeGeometry( shape1, extrudeSettings1 );
 
-  const material2 = new THREE.MeshLambertMaterial( { color: 0xff8000, wireframe: false } );
+  const material1 = new THREE.MeshLambertMaterial( { color: 0x000000, wireframe: true } );
 
-  const mesh2 = new THREE.Mesh( geometry2, material2 );
+  this.mesh1 = new THREE.Mesh( geometry1, material1 );
 
-  this.scene.add( mesh2 );
+  this.scene.add( this.mesh1 );
+
+  this.mesh1.position.z = 0.2;
+
       }
 
 // RENDER FUNCTION - (looped)
@@ -943,9 +945,9 @@ Tunnel.prototype.render = function () {
   //this is the thing that makes the walls look like they're moving towards you
   //this.updateMaterialOffset();
 
-// cylinder.position.x = this.particleLight.position.x;
-// cylinder.position.y = this.particleLight.position.y;
-// cylinder.position.z = -0.4;
+cylinder.position.x = this.particleLight.position.x;
+cylinder.position.y = this.particleLight.position.y;
+cylinder.position.z = -0.4;
 
 	var delta = clock.getDelta(); 
 
@@ -961,8 +963,6 @@ Tunnel.prototype.render = function () {
 
   // Update the color of the tunnel
   this.setColor();
-
-  this.curveGeo();
 
   // Update the mouse control to change the curve of the tunnel thing
   this.updateCurve();
