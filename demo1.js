@@ -50,9 +50,9 @@ let sectionFive = 1;
 // INTENSITY
 
 var intensityStart = -30.0;
-var intensityMid = -5.0;
-var intensityMid2 = 3.0;
-var intensityFinal = 7.0;
+var intensityMid = 3.0;
+//var intensityMid2 = 3.0;
+var intensityFinal = 5.0;
 
 //COLOR VARIABLES - hue values are out of 360
 
@@ -122,12 +122,15 @@ function Tunnel(cell) {
   //this.curveGeo();
 
   //CylinderGeometry(radiusTop : Float, radiusBottom : Float, height : Float, radialSegments : Integer, heightSegments : Integer, openEnded : Boolean, thetaStart : Float, thetaLength : Float)
-const geometry = new THREE.CylinderGeometry( 0.0005, 0.0005, 1.2, 32 );
+const geometry = new THREE.CylinderGeometry( 0.0005, 0.0005, 0.08, 32, 15, false, 0, Math.PI*2 );
 const material = new THREE.MeshBasicMaterial( {color: 0x000000} );
 cylinder = new THREE.Mesh( geometry, material );
-cylinder.rotation.x = (90 * Math.PI) / 180;
 
- this.scene.add( cylinder );
+cylinder.rotation.x = (90*Math.PI)/180;
+
+cylinder.position.z = 0.23;
+
+ //this.scene.add( cylinder );
 
   // Create the shape of the guideRail
   //this.createTrackMesh();
@@ -267,7 +270,7 @@ Tunnel.prototype.createMesh = function () {
   // Create a tube geometry based on the curve
 
   //TubeGeometry(path : Curve, tubularSegments : Integer, radius : Float, radialSegments : Integer, closed : Boolean)
-  this.tubeGeometry = new THREE.TubeGeometry(this.curve, 70, radiusShift, radialSegments, false);
+  this.tubeGeometry = new THREE.TubeGeometry(this.curve, 70, radiusShift, 50, false);
   // Create a mesh based on the tube geometry and its material
 
 
@@ -275,8 +278,8 @@ Tunnel.prototype.createMesh = function () {
 
   // MESH STANDARD MATERIAL - HIGH REFLECTIVITY
 
-  var tunnelTexture = new THREE.TextureLoader().load('img/demo1/tunnelSized.jpg');
-  myAnimator = new TextureAnimator( tunnelTexture, 1, 23, 45, 55 ); // texture, #horiz, #vert, #total, duration.
+  var tunnelTexture = new THREE.TextureLoader().load('img/demo1/marble2.png');
+  myAnimator = new TextureAnimator( tunnelTexture, 1, 10, 45, 20 ); // texture, #horiz, #vert, #total, duration.
 
   this.tubeMaterial = new THREE.MeshStandardMaterial({
     metalness: 0.2,
@@ -557,6 +560,8 @@ Tunnel.prototype.updateCameraPosition = function () {
   this.camera.position.x = this.mouse.position.x * 0.01;
   this.camera.position.y = -this.mouse.position.y * 0.01;
 
+  console.log(this.camera.position.y);
+
   //IF SPACEBAR PRESSED IS TRUE
 
   // this.camera.rotation.x += 0.002 * ( -this.mouse.target.y - this.camera.rotation.x );
@@ -705,9 +710,28 @@ Tunnel.prototype.setColor = function () {
   this.oscillator.frequency.setValueAtTime(frequency, this.frequencyShift.context.currentTime);
 
   //INTENSITY SHIFT
-  let intensityShift = (intensityStart + (intensityFinal - intensityStart) / (sectionFive - centerPoint) * ((sectionFive - centerPoint) - dist1));
 
-  this.tubeReflector.material.uniforms.intensity.value = (intensityShift);
+  if (this.mouse.target.x >= -centerBoxBoundary && this.mouse.target.x <= centerBoxBoundary && this.mouse.target.y >= -centerBoxBoundary && this.mouse.target.y <= centerBoxBoundary) {
+
+    let xdist = centerBoxBoundary - Math.abs(this.mouse.target.x);
+    let ydist = centerBoxBoundary - Math.abs(this.mouse.target.y);
+    let dist = Math.min(xdist, ydist);
+
+  let intensityShiftInner = (intensityStart + (intensityMid - intensityStart) / (centerBoxBoundary - centerPoint) * ((centerBoxBoundary - centerPoint) - dist1));
+
+  this.tubeReflector.material.uniforms.intensity.value = (intensityShiftInner);
+
+  } else {
+
+    let xdist1 = sectionFive - Math.abs(this.mouse.target.x);
+    let ydist1 = sectionFive - Math.abs(this.mouse.target.y);
+    let dist1 = Math.min(xdist1, ydist1);
+
+    let intensityShiftOuter = (intensityMid + (intensityFinal - intensityMid) / (sectionFive - centerBoxBoundary) * ((sectionFive - centerBoxBoundary) - dist1));
+
+    this.tubeReflector.material.uniforms.intensity.value = (intensityShiftOuter);
+
+  }
 
   // CENTER BOX
 
@@ -823,14 +847,14 @@ Tunnel.prototype.light = function () {
     //SphereGeometry(radius : Float, widthSegments : Integer, heightSegments : Integer, phiStart : Float, phiLength : Float, thetaStart : Float, thetaLength : Float)
     new THREE.SphereGeometry(0.003, 40, 40),
     new THREE.MeshPhongMaterial({
-      color: 0x000FFF,
-      specular: 0x666666,
+      color: 0xffffff,
+     // specular: 0xffffff,
       emissive: 0xffffff,
       shininess: 20,
       opacity: 1,
       //metalness: 0.4,
-      //emissiveIntensity : 3,
-      map: textures.marble.texture,
+      emissiveIntensity : 3,
+      //map: textures.marble.texture,
       // //bumpMap: textures.stoneBump.texture,
     })
     //new THREE.MeshBasicMaterial( { color: 0xffffff } )
@@ -840,11 +864,12 @@ Tunnel.prototype.light = function () {
     //SphereGeometry(radius : Float, widthSegments : Integer, heightSegments : Integer, phiStart : Float, phiLength : Float, thetaStart : Float, thetaLength : Float)
     new THREE.SphereGeometry(0.004, 32, 32, 0, 2.7, 0, 4),
     new THREE.MeshPhongMaterial({
-      color: 0x000000,
+      color: 0xfff000,
       specular: 0x666666,
       shininess: 20,
       opacity: 1,
-      //map: textures.marble.texture,
+      transparent: true,
+      map: textures.marble.texture,
       //bumpMap: textures.stoneBump.texture,
     })
     //new THREE.MeshBasicMaterial( { color: 0xffffff } )
@@ -877,17 +902,19 @@ Tunnel.prototype.probeMotion = function (){
   this.particleLight.position.y = THREE.Math.mapLinear(this.mouse.target.y, -1, 1, -0.011, 0.011);
   this.particleLight.position.z = 0.23;
 
-  console.log(this.particleLight.position.y);
+  //console.log(this.particleLight.position.y);
 
   this.probeHull.position.x = THREE.Math.mapLinear(-this.mouse.target.x, -1, 1, -0.011, 0.011);
   this.probeHull.position.y = THREE.Math.mapLinear(this.mouse.target.y, -1, 1, -0.011, 0.011);
   this.probeHull.position.z = 0.23;
 
-  this.particleLight.rotation.x += 0.06;
+  this.particleLight.rotation.y += 0.06;
 
-  this.probeHull.rotation.x += 0.2;
-  //probeHull.rotation.x += 0.2;  
+  this.probeHull.rotation.z += 0.2;
+  this.probeHull.rotation.x += 0.002;  
   //particleLight.rotation.z += 0.06;
+
+  console.log(this.probeHull.rotation.x);
 
 }
 
@@ -945,9 +972,17 @@ Tunnel.prototype.render = function () {
   //this is the thing that makes the walls look like they're moving towards you
   //this.updateMaterialOffset();
 
-cylinder.position.x = this.particleLight.position.x;
-cylinder.position.y = this.particleLight.position.y;
-cylinder.position.z = -0.4;
+  // cylinder.rotation.x = (Math.PI/2)-(Math.tan((0.02+this.particleLight.position.y)/0.23));
+  // cylinder.rotation.y = (Math.tan((this.particleLight.position.x)/0.23));
+  // cylinder.position.x = 0;
+  //  cylinder.position.y = -0.005;
+  //  cylinder.position.z = 0.115;
+
+  // let cylinderYOffset = cylinder.position.y - 0.3
+
+   cylinder.position.x = this.particleLight.position.x;
+   cylinder.position.y = this.particleLight.position.y;
+   cylinder.position.z = 0.23;
 
 	var delta = clock.getDelta(); 
 
@@ -1134,7 +1169,7 @@ function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDurat
 			var currentColumn = this.currentTile % this.tilesHorizontal;
 			texture.offset.x = currentColumn / (this.tilesHorizontal/8);
 			var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
-			texture.offset.y = currentRow / (this.tilesVertical/9);
+			texture.offset.y += 0.01; //currentRow / (this.tilesVertical/9);
 		}
 	};
 }		
