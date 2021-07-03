@@ -22,6 +22,75 @@ body {
 	overflow: hidden;
 }
 
+#introText {
+	width: 4000px;
+	height: 2000px;
+	background-color: black;
+	opacity: 1.0;
+
+}
+
+#stentInstructions {
+	color: white;
+	opacity: 0.0;
+	margin: 0;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	text-align: center;
+}
+
+#startButton {
+	border: none;
+	background-color: inherit;
+	padding: 14px 28px;
+	font-size: 16px;
+	cursor: pointer;
+	display: inline-block;	
+	color: #7d7d7d;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, +200%);
+	text-align: center;
+}
+
+#popUpBackground {
+	background-color: black;
+  }
+
+#welcomeHeader {
+	color: #9b9b9b;
+	font-size: 40px;
+	margin: 0;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -200%);
+	text-align: center;
+  }
+
+#instructions {
+	color: #9b9b9b;
+	margin: 0;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -40%);
+	text-align: center;
+  }
+
+  #instructions2 {
+	color: #9b9b9b;
+	margin: 0;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, 100%);
+	text-align: center;
+  }
+
 a {
 	text-decoration: none;
 	color: #ddd;
@@ -189,6 +258,10 @@ img {
 }
 
 /* Demo links */
+.wellcome {
+	margin-left: 6em;
+}
+
 .demos {
 	margin: 0 0 0 auto;
 }
