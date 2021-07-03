@@ -678,6 +678,9 @@ Tunnel.prototype.onDocumentMouseDown = function (event){
       //4. Redraw the stent with the new parameters
 
      // this.audioStart();
+	
+var audioCtx = new AudioContext();
+audioCtx.resume();
 
 
 if (clickFlag == 1 && mouseFlag == 1){
