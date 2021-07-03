@@ -18,12 +18,14 @@ var wh = window.innerHeight;
 var ww2 = ww * 0.5,
   wh2 = wh * 0.5; // Save half window dimension
 
+var delta;
 
 var myAnimator;
 
 // TEXTURE
 
 var clock = new THREE.Clock();
+var myTime = clock.getElapsedTime();
 var time = 0;
 
 // TUNNEL VARIABLES
@@ -99,20 +101,34 @@ let cell;
 
 var cylinder;
 
+//STENT STUFF
+
+var stentAnimationFlag = 0;
+
 var segments = 3;
-var latheRadius = 0.007;
+var latheRadius = 0.009;
+var minimumOculus = 0.009;
+var blockageSegments = 16;
+var blockageRadius = 0.021;
+var blockageCounter = 0;
+var rectangleFlag = 1;
+var mouseFlag = 0;
+var doneFlag = 0;
+var latheFlag = 0;
+var clickFlag = 0;
+var textRemoveFlag = 0;
 
 // LOAD TEXTURES 
 // (Leads to checkTextures();)
 var textures = {
   "stone": {
-    url: "img/demo1/alphaMap10.png"
+    url: "img/demo1/alphaMapTunnel.png"
   },
   "stoneBump": {
     url: "img/demo1/tunnelSized.jpg"
   },
   "marble": {
-    url: "img/demo1/marble2.png"
+    url: "img/demo1/marbleTexture.png"
   }
 };
 
@@ -152,6 +168,8 @@ function Tunnel(cell) {
   // Create the shape of the tunnel
   this.createMesh();
 
+ // this.popUpStent();
+
   //CylinderGeometry(radiusTop : Float, radiusBottom : Float, height : Float, radialSegments : Integer, heightSegments : Integer, openEnded : Boolean, thetaStart : Float, thetaLength : Float)
   const geometry = new THREE.CylinderGeometry( 0.0005, 0.0005, 0.08, 32, 15, false, 0, Math.PI*2 );
   const material = new THREE.MeshBasicMaterial( {color: 0x000000} );
@@ -175,8 +193,6 @@ function Tunnel(cell) {
 
   this.scene.add(backLight2);
   this.scene.add(backLight);
-
-  this.drawStent(segments, 0, 2 * Math.PI, latheRadius);
 
   // Mouse events & window resize
   this.handleEvents();
@@ -254,7 +270,7 @@ Tunnel.prototype.audioStart = function () {
 
     sound.setBuffer(buffer);
     sound.setLoop(true);
-    sound.setVolume(10);
+    sound.setVolume(8);
     sound.play();
 
   });
@@ -317,7 +333,7 @@ Tunnel.prototype.createMesh = function () {
 
   // MESH STANDARD MATERIAL - HIGH REFLECTIVITY
 
-  var tunnelTexture = new THREE.TextureLoader().load('img/demo1/marble2.png');
+  var tunnelTexture = new THREE.TextureLoader().load('img/demo1/marbleTexture.png');
   myAnimator = new TextureAnimator( tunnelTexture, 1, 10, 45, 20 ); // texture, #horiz, #vert, #total, duration.
 
 
@@ -455,24 +471,26 @@ function TextureAnimator(texture, tilesHoriz, tilesVert, numTiles, tileDispDurat
 			texture.offset.x = currentColumn / (this.tilesHorizontal/8);
 			var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
 			texture.offset.y += 0.01; //currentRow / (this.tilesVertical/9);
+      //console.log("updating");
 		}
 	};
 
-	this.noUpdate = function( milliSec )
-	{
-		this.currentDisplayTime += milliSec;
-		while (this.currentDisplayTime > this.tileDisplayDuration)
-		{
-			this.currentDisplayTime -= this.tileDisplayDuration;
-			this.currentTile = 0;
-			if (this.currentTile == this.numberOfTiles)
-				this.currentTile = 0;
-			var currentColumn = this.currentTile % this.tilesHorizontal;
-			texture.offset.x = currentColumn / (this.tilesHorizontal/8);
-			var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
-			texture.offset.y += 0.01; //currentRow / (this.tilesVertical/9);
-		}
-	};
+	// this.noUpdate = function( milliSec )
+	// {
+	// 	this.currentDisplayTime += milliSec;
+	// 	while (this.currentDisplayTime > this.tileDisplayDuration)
+	// 	{
+	// 		this.currentDisplayTime -= this.tileDisplayDuration;
+	// 		this.currentTile = 0;
+	// 		if (this.currentTile == this.numberOfTiles)
+	// 			this.currentTile = 0;
+	// 		var currentColumn = this.currentTile % this.tilesHorizontal;
+	// 		texture.offset.x = currentColumn / (this.tilesHorizontal/8);
+	// 		var currentRow = Math.floor( this.currentTile / this.tilesHorizontal );
+	// 		texture.offset.y += 0.01; //currentRow / (this.tilesVertical/9);
+  //     console.log("not updating");
+	// 	}
+	// };
 
 }		
 
@@ -555,7 +573,7 @@ Tunnel.prototype.drawStent = function (segments, phiStart, phiLength, latheRadiu
 
   //console.log(latheVertices);
 
-  var tunnelTexture2 = new THREE.TextureLoader().load('img/demo1/marble2.png');
+  var tunnelTexture2 = new THREE.TextureLoader().load('img/demo1/marbleTexture.png');
   //myAnimator = new TextureAnimator( tunnelTexture2, 1, 10, 45, 20 ); // texture, #horiz, #vert, #total, duration.
 
   this.latheMaterial = new THREE.MeshStandardMaterial({
@@ -579,7 +597,7 @@ Tunnel.prototype.drawStent = function (segments, phiStart, phiLength, latheRadiu
 // the position stuff
  this.lathe.position.x = 0;
  this.lathe.position.y = 0;
- this.lathe.position.z = 0.8;
+ this.lathe.position.z = 0.42;
 
  this.lathe.rotation.x = -(90 * Math.PI) / 180;
 
@@ -590,8 +608,8 @@ Tunnel.prototype.drawStent = function (segments, phiStart, phiLength, latheRadiu
  this.depthLathe.rotation.x = -(90 * Math.PI) / 180;
 
 
-  //add everything to the scene
- // this.scene.add( this.lathe );
+ //add everything to the scene
+  //this.scene.add( this.lathe );
   this.scene.add( this.depthLathe );
 }
 
@@ -624,13 +642,11 @@ Tunnel.prototype.handleEvents = function () {
     false 
     );
 
-  document.body.addEventListener(
-    "spaceBarPressed",
-    this.spaceBarPressed,
-    false
-  )
+  // document.getElementById('startButton').addEventListener("buttonPress", function() {
+  //   console.log("hi"); 
+  // });​
 
-};
+}
 
 // RESIZE TO FIT SCREEN FUNCTION - (looped)
 
@@ -661,34 +677,61 @@ Tunnel.prototype.onDocumentMouseDown = function (event){
       //3. Increase the segments and radii
       //4. Redraw the stent with the new parameters
 
+     // this.audioStart();
 
- // this.scene.remove( this.lathe );
 
-  if (latheRadius<0.02){
-    myAnimator.noUpdate();
+if (clickFlag == 1 && mouseFlag == 1){
+
+console.log("Hi, mouseFlag I'm here");
+
+if (textRemoveFlag == 0) {
+
+//this.stentInstructionsText = document.querySelector('#stentInstructions');
+//this.stentInstructionsText.remove();
+this.stentInstructionsText.style.opacity = "0.0";
+textRemoveFlag = 1;
+
+}
+
+    this.scene.remove(this.plane);
+   // this.scene.remove(this.depthLathe);
+
+  if (blockageRadius<0.02){
+   // myAnimator.noUpdate();
     this.tubeReflector.material.uniforms.speed.value = 0;
 
-  this.scene.remove( this.depthLathe );
+    this.scene.remove( this.depthLathe );
 
-  segments += 1;
-  latheRadius += 0.0009;
+    blockageSegments += 1;
+    blockageRadius += 0.0009;
 
-  console.log(latheRadius);
-  console.log(segments);
-
-  this.drawStent(segments, 0, 6.3, latheRadius);
+    this.drawStent(blockageSegments, 0, 6.3, blockageRadius);
 
   //RESUME COMMANDS:
       //1. Get rid of lathes so they don't pop up randomly on the edges
       //2. Resume conveyor belt animation
 
-  }else if (latheRadius > 0.02) {
+    //console.log(latheRadius);
+
+  }else if (blockageRadius > 0.02) {
    // this.scene.remove( this.lathe );
     this.scene.remove(this.depthLathe);
     this.tubeReflector.material.uniforms.speed.value = -0.1;
     myAnimator.update();
+    doneFlag = 1;
+
+    //Reset the animated beginning and the pop up for the next round
+   // segments = 16;
+   // latheRadius = 0.021;
+
+   blockageSegments = 16;
+   blockageRadius = 0.021;
+   blockageCounter = 0;
+   clickFlag = 0;
+
   }
 
+}
 
 }
 
@@ -700,33 +743,7 @@ Tunnel.prototype.onMouseMove = function (e) {
   this.mouse.target.x = (e.clientX - ww2) / ww2;
   this.mouse.target.y = (wh2 - e.clientY) / wh2;
 
-};
-
-// CHANGE SPACEBAR STATE - (not yet added)
-
-Tunnel.prototype.spaceBarPressed = function (event) {
-  var keyCode = event.which;
-
-  // IF SPACEBAR IS PRESSED, EXPLORE
-  if (keyCode == 32) {
-    this.camera.rotation.x += 0.002 * ( -this.mouse.target.y - this.camera.rotation.x );
-    this.camera.rotation.y += 0.002 * ( -this.mouse.target.x - this.camera.rotation.y );
-  } 
-  
-  //
-  
-  else {
-    this.mouse.position.x += (this.mouse.target.x - this.mouse.position.x) / 100;
-    this.mouse.position.y += (this.mouse.target.y - this.mouse.position.y) / 100;
-  
-    // Rotate Z & Y axis
-    this.camera.rotation.z = this.mouse.position.x * 0.02;
-    this.camera.rotation.y = Math.PI - this.mouse.position.x * 0.006;
-  
-    // Move a bit the camera horizontally & vertically
-    this.camera.position.x = this.mouse.position.x * 0.01;
-    this.camera.position.y = -this.mouse.position.y * 0.01;
-  }
+  //this.setColor();
 
 };
 
@@ -743,7 +760,7 @@ function Particle(scene, burst) {
         var offset = burst ? 200 : 350;
         var saturate = Math.floor(Math.random()*20 + 65);
         var light = burst ? 20 : 56;
-        this.color = new THREE.Color("hsl(" + (Math.random() * range - 200) + ","+saturate+"%,"+light+"%)");
+        this.color = new THREE.Color("hsl(" + (Math.abs(Math.random() * range - 200)) + ","+saturate+"%,"+light+"%)");
         var mat = new THREE.MeshPhongMaterial({
           color: this.color,
           map: textures.marble.texture
@@ -796,16 +813,102 @@ Tunnel.prototype.render = function () {
   //this is the thing that makes the walls look like they're moving towards you
   //this.updateMaterialOffset();
 
-	var delta = clock.getDelta(); 
+ // let stentFlag = 1;
+
+// if ((THREE.Clock() - clock) > 10){
+ //}
+
+  //this will get changed when the animation changes
+  delta = clock.getDelta();
+
+	//var delta = clock.getDelta(); 
+
+ // console.log(clock.elapsedTime);
 
 //	myAlphaAnimator.update(-(100 * delta));
 	myAnimator.update(200 * delta);
 
+  //this.animateLathe();
+
+  //console.log(clock.getElapsedTime() - myTime);
+ //console.log(myTime);
+ //console.log(clock.getElapsedTime());
+
+
+  if (clock.getElapsedTime() - myTime > 23){
+    //console.log("I'm in!")
+
+    if (latheFlag == 0){
+
+      this.scene.remove(this.depthLathe);
+      this.drawStent(blockageSegments, 0, 6.3, blockageRadius);
+
+      latheFlag = 1;            //this is to avoid redrawing every time it loops
+      blockageCounter += 1;     //adds time
+      blockageSegments -= 1;    //adds segments
+      blockageRadius -= 0.0009; //subtracts radius
+    }
+    
+    if (clock.getElapsedTime() - myTime > 23 + blockageCounter){
+      if (blockageSegments>2){
+      latheFlag = 0;
+      }
+    }
+
+    if (blockageSegments == 2  && rectangleFlag == 1){
+
+      this.tubeReflector.material.uniforms.speed.value = 0;
+
+      //The Dark Plane
+
+      this.planeGeometry = new THREE.PlaneGeometry( 1, 1, 2, 2 );
+      this.planeMaterial = new THREE.MeshBasicMaterial( {
+        color: 0x000000,
+        transparent: true,
+        opacity: 0.8,
+        side: THREE.DoubleSide
+      } );
+
+      this.plane = new THREE.Mesh( this.planeGeometry, this.planeMaterial );
+     
+      this.plane.position.z = 0.03;
+      this.plane.position.x = 0;
+      this.plane.rotateZ( Math.PI / 2);
+     
+      this.scene.add(this.plane);
+
+      //INSERT TEXT HERE
+      this.stentInstructionsText = document.getElementById("stentInstructions");
+      //this.instructionPopUp.add(),
+      this.stentInstructionsText.style.opacity = "1.0";
+
+      mouseFlag = 1;
+      doneFlag = 1;
+      latheFlag = 0;
+      rectangleFlag = 1;
+      clickFlag = 1;
+
+
+    }
+
+    //THIS IS WHERE THE CODE REFERENCES THE DONE FLAG SECTION
+    
+    if (doneFlag == 1){
+      //clock = clock;
+      myTime = clock.getElapsedTime();
+      textRemoveFlag = 0;
+      doneFlag = 0;
+    }
+
+  }
+
+  
+
+  //console.log(clock.getElapsedTime() - myTime);
+
   // Update camera position & rotation
   // This is super necessary because otherwise it does a really weird thing where half the thing is grey
   this.updateCameraPosition();
-
- // this.onDocumentMouseDown();
 
   // Move the probe and the rotating sphere
   this.probeMotion();
@@ -1025,7 +1128,7 @@ Tunnel.prototype.setColor = function () {
     let ydist = sectionFour - Math.abs(this.mouse.target.y);
     let dist = Math.min(xdist, ydist);
 
-    let Hue = (hue32 + (hue4 - hue32) / (sectionFour - sectionThree) * ((sectionFour - sectionThree) - dist));
+    let Hue = Math.abs((hue32 + (hue4 - hue32) / (sectionFour - sectionThree) * ((sectionFour - sectionThree) - dist)));
 
     let Sat = (sat3 + (sat4 - sat3) / (sectionFour - sectionThree) * ((sectionFour - sectionThree) - dist));
 
