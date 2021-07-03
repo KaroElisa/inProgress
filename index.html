@@ -24,6 +24,7 @@
 		</div>
 			-->
 		<main>
+
 			<header class="OpUS-header">
 				<!--
 				<div class="OpUS-links">
@@ -35,9 +36,12 @@
 				-->
 				<img src="img/demo1/OpUS logo.png" alt="OpUS:Illuminating Disease Logo">
 
-				<nav class="demos">
-					<!-- Input links to research here -->
-					<a class="demo" href="index6.html"> </a>
+				<a class="demo">Explore OpUS</a>	
+				<!-- <nav class="wellcome">
+					Input links to research here
+					<a class="wellcome" href="index6.html"></a> 
+				-->
+
 				</nav>
 			</header>
 			<footer class = "OpUS-footer">
@@ -51,17 +55,31 @@
 				</nav>			
 			</footer>			
 			<div class="content">
+			<div id = "introText">
 				<!-- The canvas where ThreeJs renders the WebGL -->
+				<p id = "welcomeHeader">Welcome to the OpUS virtual experience.</p>
+				<p id = "instructions"> Use your mouse to move around the space and illuminate the walls. </p>
+				<p id = "instructions2">What do you see and hear?</p>
+				<button id="startButton" onclick="test()">Begin Experience</button>
+				<rect width="400px" height="900 px" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb(0,0,0)" />
+			</div>
+				<p id = "stentInstructions">You encounter an abnormality. Click on the area repeatedly with your mouse to expand the space and improve the flow.</p>
 				<canvas id="scene"></canvas>
 			</div>
+
+		<script>
+		console.log("here!");
+		</script>
+
 		</main>
 
-		
-		<script src="js/three.min.js"></script>
-		<script type = "module" src="js/stats.module.js"></script>
-		<script type = "module" src = "js/OrbitControls.js"></script>
-		<script src="js/OBJLoader.js"></script>
-		<script type = "module" src = "demo1.js"></script>
+		<script>
+			function test(){
+			  console.log("pressed");
+			  this.header = document.querySelector('#introText');
+    		  this.header.remove();
+			 }
+		</script>
 
 		<script id="tunnelVertexShader" type="x-shader/x-vertex">
 			varying vec3 vPosition;
@@ -70,8 +88,14 @@
 			  gl_Position = projectionMatrix * modelViewMatrix * vec4(position,0.2);
 			}
 		</script>
+
+		<script src="js/three.min.js"></script>
+		<script type = "module" src="js/stats.module.js"></script>
+		<script type = "module" src = "js/OrbitControls.js"></script>
+		<script src="js/OBJLoader.js"></script>
+		<script type = "module" src = "demo1.js"></script>
 		
-		  <script id="tunnelFragmentShader" type="x-shader/x-fragment">
+		<script id="tunnelFragmentShader" type="x-shader/x-fragment">
 			varying vec3 vPosition;
 			uniform vec3 color;
 			uniform vec3 noiseScale;
@@ -226,7 +250,7 @@
 			  float finalAlpha = finalColor.x + finalColor.y + finalColor.z;
 			  gl_FragColor = vec4(finalColor, finalAlpha);
 			}
-		  </script>	
+		</script>	
 
 	</body>
 </html>
